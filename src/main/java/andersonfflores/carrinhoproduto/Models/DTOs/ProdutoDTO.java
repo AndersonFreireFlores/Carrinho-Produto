@@ -1,6 +1,9 @@
 package andersonfflores.carrinhoproduto.Models.DTOs;
 
-import java.math.BigDecimal;
+import jakarta.persistence.Column;
 
-public record ProdutoDTO(String nome, String descricao, BigDecimal precoUnitario) {
+import java.math.BigDecimal;
+import java.util.UUID;
+
+public record ProdutoDTO(UUID id, String nome, String descricao, @Column(name = "precounitario") BigDecimal precoUnitario) {
 }

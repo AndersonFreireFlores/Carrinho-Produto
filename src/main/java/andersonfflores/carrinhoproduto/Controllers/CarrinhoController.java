@@ -24,7 +24,7 @@ public class CarrinhoController {
 
     @GetMapping(value = "/carrinho/{id}")
     public Optional<CarrinhoDTO> getCarrinho(@PathVariable UUID id) {
-        return carrinhoService.getCarrinhoById(id);
+        return Optional.ofNullable(carrinhoService.getCarrinhoById(id));
     }
 
     @PostMapping(value = "/carrinho")
