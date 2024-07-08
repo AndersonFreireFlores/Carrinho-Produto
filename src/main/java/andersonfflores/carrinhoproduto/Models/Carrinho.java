@@ -1,9 +1,7 @@
 package andersonfflores.carrinhoproduto.Models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,19 +12,26 @@ import java.util.UUID;
 public class Carrinho {
 
     @Id
+    @GeneratedValue
     private UUID id;
 
-    private BigDecimal preco;
+    private BigDecimal preco_total;
 
     @OneToMany
+    @JsonIgnore
     private List<Item> itens;
 
     public Carrinho() {
     }
 
-    public Carrinho(UUID id, BigDecimal preco, List<Item> itens) {
+    public Carrinho(BigDecimal preco_total, List<Item> itens) {
+        this.preco_total = preco_total;
+        this.itens = itens;
+    }
+
+    public Carrinho(UUID id, BigDecimal preco_total, List<Item> itens) {
         this.id = id;
-        this.preco = preco;
+        this.preco_total = preco_total;
         this.itens = itens;
     }
 
@@ -38,12 +43,12 @@ public class Carrinho {
         this.id = id;
     }
 
-    public BigDecimal getPreco() {
-        return preco;
+    public BigDecimal getPreco_total() {
+        return preco_total;
     }
 
-    public void setPreco(BigDecimal preco) {
-        this.preco = preco;
+    public void setPreco_total(BigDecimal preco_total) {
+        this.preco_total = preco_total;
     }
 
     public List<Item> getItens() {
@@ -53,4 +58,10 @@ public class Carrinho {
     public void setItens(List<Item> itens) {
         this.itens = itens;
     }
+
+    public void addItem(Item item) {
+        itens.add(item);
+    }
+
+
 }
