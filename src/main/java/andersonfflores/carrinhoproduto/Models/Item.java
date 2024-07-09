@@ -10,6 +10,7 @@ import java.util.UUID;
 public class Item {
 
     @Id
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne
@@ -20,17 +21,21 @@ public class Item {
 
     private int quantidade;
 
-    private BigDecimal valorTotal;
 
     public Item() {
     }
 
-    public Item(UUID id, Carrinho carrinho, Produto produto, int quantidade, BigDecimal valorTotal) {
+    public Item(Carrinho carrinho, Produto produto, int quantidade) {
+        this.carrinho = carrinho;
+        this.produto = produto;
+        this.quantidade = quantidade;
+    }
+
+    public Item(UUID id, Carrinho carrinho, Produto produto, int quantidade) {
         this.id = id;
         this.carrinho = carrinho;
         this.produto = produto;
         this.quantidade = quantidade;
-        this.valorTotal = valorTotal;
     }
 
     public UUID getId() {
@@ -65,11 +70,6 @@ public class Item {
         this.quantidade = quantidade;
     }
 
-    public BigDecimal getValorTotal() {
-        return valorTotal;
-    }
 
-    public void setValorTotal(BigDecimal valorTotal) {
-        this.valorTotal = valorTotal;
-    }
+
 }

@@ -1,7 +1,9 @@
 package andersonfflores.carrinhoproduto.Models.DTOs;
 
-import java.math.BigDecimal;
+import andersonfflores.carrinhoproduto.Models.Carrinho;
+import andersonfflores.carrinhoproduto.Models.Produto;
+
 import java.util.UUID;
 
-public record ItemDTO(UUID id, UUID carrinhoId, UUID produtoId, int quantidade, BigDecimal valorTotal) {
+public record ItemDTO(UUID id, Carrinho carrinho, Produto produto, int quantidade) {
 }
