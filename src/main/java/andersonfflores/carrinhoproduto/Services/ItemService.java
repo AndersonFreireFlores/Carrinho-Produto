@@ -1,79 +1,71 @@
 package andersonfflores.carrinhoproduto.Services;
 
+import andersonfflores.carrinhoproduto.Models.DTOmappers.ItemDTOMapper;
 import andersonfflores.carrinhoproduto.Models.DTOs.ItemDTO;
 import andersonfflores.carrinhoproduto.Models.Item;
-import andersonfflores.carrinhoproduto.Models.Produto;
 import andersonfflores.carrinhoproduto.Repositories.CarrinhoRepository;
 import andersonfflores.carrinhoproduto.Repositories.ItemRepository;
 import andersonfflores.carrinhoproduto.Repositories.ProdutoRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
+import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
 
     private final ItemRepository itemRepository;
+    private final ItemDTOMapper itemDTOMapper;
+    private final CarrinhoRepository carrinhoRepository;
+    private final ProdutoRepository produtoRepository;
 
-
-    public ItemService(ItemRepository itemRepository) {
+    public ItemService(ItemRepository itemRepository, ItemDTOMapper itemDTOMapper,
+                       CarrinhoRepository carrinhoRepository, ProdutoRepository produtoRepository) {
         this.itemRepository = itemRepository;
+        this.itemDTOMapper = itemDTOMapper;
+        this.carrinhoRepository = carrinhoRepository;
+        this.produtoRepository = produtoRepository;
     }
 
     public List<ItemDTO> getAllItems() {
-        Iterable<Item> itemsIterable = itemRepository.findAll();
-        List<ItemDTO> itemList = new ArrayList<>();
-        itemsIterable.forEach(item -> itemList.add(toDTO(item)));
-        return itemList;
+        List<Item> items = (List<Item>) itemRepository.findAll();
+        return items.stream()
+                .map(itemDTOMapper)
+                .collect(Collectors.toList());
     }
 
     public ItemDTO getItemById(UUID id) {
-        Optional<Item> itemOptional = itemRepository.findById(id);
-        if (itemOptional.isPresent()) {
-            return toDTO(itemOptional.get());
-        }
-        return null;
+        return itemRepository.findById(id).map(itemDTOMapper)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
     }
 
-    public ItemDTO saveItem(ItemDTO itemDTO) {
-        Item item = new Item(itemDTO.carrinho(),itemDTO.produto(),itemDTO.quantidade());
+    public ItemDTO createItem(ItemDTO itemDTO) {
+        itemRepository.save(new Item(
+                itemDTO.itemId(),
+                carrinhoRepository.findById(UUID.fromString(itemDTO.carrinhoId())).orElseThrow(
+                        () -> new RuntimeException("Carrinho not found")),
+                produtoRepository.findById(UUID.fromString(itemDTO.produtoId())).orElseThrow(
+                        () -> new RuntimeException("produto not found")),
+                itemDTO.quantidade()
+        ));
+        return itemDTO;
+    }
+
+    public ItemDTO updateItem(UUID id, ItemDTO itemDTO) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+        item.setCarrinho(carrinhoRepository.findById(UUID.fromString(itemDTO.carrinhoId())).orElseThrow(
+                () -> new RuntimeException("Carrinho not found")));
+        item.setProduto(produtoRepository.findById(UUID.fromString(itemDTO.produtoId())).orElseThrow(
+                () -> new RuntimeException("produto not found")));
+        item.setQuantidade(itemDTO.quantidade());
         itemRepository.save(item);
 
         return itemDTO;
     }
 
-    public ItemDTO updateItem(UUID id, ItemDTO itemDTO) {
-        Optional<Item> itemOptional = itemRepository.findById(id);
-        if (itemOptional.isPresent()) {
-            itemOptional.get().setCarrinho(itemDTO.carrinho());
-            itemOptional.get().setProduto(itemDTO.produto());
-            itemOptional.get().setQuantidade(itemDTO.quantidade());
-            itemRepository.save(itemOptional.get());
-        }
-        return itemDTO;
-    }
-
     public void deleteItem(UUID id) {
         itemRepository.deleteById(id);
-    }
-
-    public Item fromDTO(ItemDTO itemDTO) {
-        return new Item(itemDTO.id(),
-                itemDTO.carrinho()
-                ,itemDTO.produto()
-                ,itemDTO.quantidade());
-    }
-
-    public ItemDTO toDTO(Item item) {
-        return new ItemDTO(item.getId(),
-                item.getCarrinho(),
-                item.getProduto(),
-                item.getQuantidade());
-
     }
 }

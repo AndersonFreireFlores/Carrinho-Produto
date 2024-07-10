@@ -28,7 +28,7 @@ public class ItemController {
 
     @PostMapping("/item")
     public ItemDTO addItem(@RequestBody ItemDTO itemDTO) {
-        return  itemService.saveItem(itemDTO);
+        return  itemService.createItem(itemDTO);
     }
 
     @PutMapping("/item/{id}")
