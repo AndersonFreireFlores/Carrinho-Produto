@@ -3,8 +3,6 @@ package andersonfflores.carrinhoproduto.Models.DTOmappers;
 import andersonfflores.carrinhoproduto.Models.DTOs.ItemDTO;
 import andersonfflores.carrinhoproduto.Models.Item;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 import java.util.function.Function;
 
 @Service

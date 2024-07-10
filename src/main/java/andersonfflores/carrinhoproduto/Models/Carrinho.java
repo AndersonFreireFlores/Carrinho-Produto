@@ -17,7 +17,7 @@ public class Carrinho {
 
     private BigDecimal preco_total;
 
-    @OneToMany
+    @OneToMany(mappedBy = "carrinho")
     @JsonIgnore
     private List<Item> itens;
 

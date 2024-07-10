@@ -1,68 +1,77 @@
 package andersonfflores.carrinhoproduto.Services;
 
 import andersonfflores.carrinhoproduto.Models.Carrinho;
+import andersonfflores.carrinhoproduto.Models.DTOmappers.CarrinhoDTOMapper;
 import andersonfflores.carrinhoproduto.Models.DTOs.CarrinhoDTO;
+import andersonfflores.carrinhoproduto.Models.Item;
 import andersonfflores.carrinhoproduto.Repositories.CarrinhoRepository;
+import andersonfflores.carrinhoproduto.Repositories.ItemRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class CarrinhoService {
 
     private  final CarrinhoRepository carrinhoRepository;
+    private final CarrinhoDTOMapper carrinhoDTOMapper;
+    private final ItemRepository itemRepository;
 
-
-    public CarrinhoService(CarrinhoRepository carrinhoRepository) {
+    public CarrinhoService(CarrinhoRepository carrinhoRepository, CarrinhoDTOMapper carrinhoDTOMapper, ItemRepository itemRepository) {
         this.carrinhoRepository = carrinhoRepository;
+        this.carrinhoDTOMapper = carrinhoDTOMapper;
+        this.itemRepository = itemRepository;
     }
 
     public List<CarrinhoDTO> getCarrinhos() {
-        Iterable<Carrinho> carrinhos = carrinhoRepository.findAll();
-        List<CarrinhoDTO> carrinhoDTOs = new ArrayList<>();
-        carrinhos.forEach(carrinho -> carrinhoDTOs.add(toDTO(carrinho)));
-        return carrinhoDTOs;
+        List<Carrinho> carrinhos = (List<Carrinho>) carrinhoRepository.findAll();
+
+        List<CarrinhoDTO> carrinhoDTOS =  carrinhos
+                .stream()
+                .map(carrinhoDTOMapper)
+                .toList();
+        return carrinhoDTOS;
     }
 
     public CarrinhoDTO getCarrinhoById(UUID id) {
-        Optional<Carrinho> carrinho = carrinhoRepository.findById(id);
-        if (carrinho.isPresent()) {
-            return toDTO(carrinho.get());
-        }
-        return null;
+        return carrinhoRepository.findById(id)
+                .map(carrinhoDTOMapper)
+                .orElseThrow(
+                        () -> new RuntimeException("Carrinho not found"));
     }
 
     public CarrinhoDTO save(CarrinhoDTO carrinhoDTO) {
-        carrinhoRepository.save(fromDTO(carrinhoDTO));
+        carrinhoRepository.save(
+                new Carrinho(
+                        carrinhoDTO.id(),
+                        calcularValorCarrinho(carrinhoDTO.id()),
+                        itemRepository.findAllItemsbyCarrinho(carrinhoDTO.id())
+                ));
         return carrinhoDTO;
     }
 
 
-    public CarrinhoDTO update(UUID id,CarrinhoDTO carrinhoDTO) {
-        Optional<Carrinho> carrinho = carrinhoRepository.findById(id);
-        if (carrinho.isPresent()) {
-            carrinho.get().setPreco_total(carrinhoDTO.preco_total());
-            carrinho.get().setItens(carrinhoDTO.items());
-            carrinhoRepository.save(carrinho.get());
-            return toDTO(carrinho.get());
-        }
-        return null;
+    public void update(UUID id) {
+        Carrinho carrinho = carrinhoRepository.findById(id).orElseThrow(
+                        () -> new RuntimeException("Carrinho not found"));
+        carrinho.setPreco_total(calcularValorCarrinho(id));
+        carrinho.setItens(itemRepository.findAllItemsbyCarrinho(id));
+        carrinhoRepository.save(carrinho);
     }
 
     public void delete(UUID id) {
         carrinhoRepository.deleteById(id);
     }
 
-    public Carrinho fromDTO(CarrinhoDTO carrinhoDTO) {
-        return new Carrinho(carrinhoDTO.preco_total(),carrinhoDTO.items());
+
+    public BigDecimal calcularValorCarrinho(UUID id) {
+        List<BigDecimal> list = carrinhoRepository.calcularValorCarrinho(id);
+        return list.stream().reduce(BigDecimal.valueOf(0), BigDecimal::add);
     }
 
-    public CarrinhoDTO toDTO(Carrinho carrinho) {
-        return new CarrinhoDTO(carrinho.getId(),carrinho.getPreco_total(),carrinho.getItens());
-    }
+
 
 
 }

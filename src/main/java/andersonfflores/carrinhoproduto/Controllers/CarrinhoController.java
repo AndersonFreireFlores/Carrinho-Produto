@@ -33,8 +33,9 @@ public class CarrinhoController {
     }
 
     @PutMapping(value = "/carrinho/{id}")
-    public CarrinhoDTO putCarrinho(@PathVariable UUID id, @RequestBody CarrinhoDTO carrinhoDTO) {
-        return carrinhoService.update(id, carrinhoDTO);
+    public CarrinhoDTO putCarrinho(@PathVariable UUID id) {
+         carrinhoService.update(id);
+         return carrinhoService.getCarrinhoById(id);
     }
 
     @DeleteMapping(value = "/carrinho/{id}")
