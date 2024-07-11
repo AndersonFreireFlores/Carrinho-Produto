@@ -8,44 +8,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @DataJpaTest
 @ActiveProfiles("test")
-class CarrinhoRepositoryTest {
+class ItemRepositoryTest {
 
-
+    @Autowired
+    private ItemRepository itemRepository;
     @Autowired
     private CarrinhoRepository carrinhoRepository;
     @Autowired
     private ProdutoRepository produtoRepository;
-    @Autowired
-    private ItemRepository itemRepository;
-
 
     @Test
-    void calcularValorCarrinho() {
+    void findAllItemsbyCarrinho() {
         Carrinho carrinho = new Carrinho();
-        Item item = new Item();
-        Produto produto = new Produto();
-        carrinho.setItens(new ArrayList<Item>());
-        carrinho.getItens().add(item);
-        item.setProduto(produto);
-        item.setQuantidade(2);
-        produto.setPrecoUnitario(BigDecimal.valueOf(10));
-        itemRepository.save(item);
-        produtoRepository.save(produto);
         carrinhoRepository.save(carrinho);
+        Produto produto = new Produto();
+        produtoRepository.save(produto);
+        Item item = new Item(
+                UUID.randomUUID(),
+                carrinho,
+                produto,
+                1
+        );
 
-        List<BigDecimal> bigDecimalList = carrinhoRepository.calcularValorCarrinho(carrinho.getId());
-        BigDecimal valorFinal = bigDecimalList.stream().reduce(BigDecimal.valueOf(0), BigDecimal::add);
-        assertThat(valorFinal.equals(BigDecimal.valueOf(20)));
-
+        itemRepository.save(item);
+        List<Item> itemList = itemRepository.findAllItemsbyCarrinho(carrinho.getId());
+        assertThat(itemList.size()).isEqualTo(1);
     }
-
-
 }
