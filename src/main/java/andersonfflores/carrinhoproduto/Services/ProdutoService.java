@@ -5,10 +5,10 @@ import andersonfflores.carrinhoproduto.Models.Produto;
 import andersonfflores.carrinhoproduto.Repositories.ProdutoRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class ProdutoService {
@@ -20,35 +20,30 @@ public class ProdutoService {
     }
 
     public List<ProdutoDTO> findProdutos() {
-        Iterable<Produto> produtos = produtoRepository.findAll();
-        List<ProdutoDTO> produtoDTOs = new ArrayList<>();
-        produtos.forEach(produto -> produtoDTOs.add(toDTO(produto)));
-        return produtoDTOs;
+        return StreamSupport.stream(produtoRepository.findAll().spliterator(), false)
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     public ProdutoDTO findById(UUID id) {
-        Optional<Produto> produto = produtoRepository.findById(id);
-        if (produto.isPresent()) {
-            return toDTO(produto.get());
-        }
-        return null;
+        return produtoRepository.findById(id).map(this::toDTO).orElse(null);
     }
 
     public ProdutoDTO save(ProdutoDTO produtoDTO) {
-        produtoRepository.save(fromDTO(produtoDTO));
-        return produtoDTO;
+        Produto produto = fromDTO(produtoDTO);
+        produtoRepository.save(produto);
+        return toDTO(produto);
     }
 
-    public ProdutoDTO update(UUID id,ProdutoDTO produtoDTO) {
-        Optional<Produto> produto = produtoRepository.findById(id);
-        if (produto.isPresent()) {
-            produto.get().setNome(produtoDTO.nome());
-            produto.get().setDescricao(produtoDTO.descricao());
-            produto.get().setPrecoUnitario(produtoDTO.precoUnitario());
-            produtoRepository.save(produto.get());
-            return toDTO(produto.get());
-        }
-        return null;
+    public ProdutoDTO update(UUID id, ProdutoDTO produtoDTO) {
+        return produtoRepository.findById(id)
+                .map(produto -> {
+                    produto.setNome(produtoDTO.nome());
+                    produto.setDescricao(produtoDTO.descricao());
+                    produto.setPrecoUnitario(produtoDTO.precoUnitario());
+                    produtoRepository.save(produto);
+                    return toDTO(produto);
+                }).orElse(null);
     }
 
     public void delete(UUID id) {
@@ -56,11 +51,10 @@ public class ProdutoService {
     }
 
     public Produto fromDTO(ProdutoDTO produtoDTO) {
-        return new Produto(produtoDTO.nome(),produtoDTO.descricao(),produtoDTO.precoUnitario());
+        return new Produto(produtoDTO.nome(), produtoDTO.descricao(), produtoDTO.precoUnitario());
     }
 
     public ProdutoDTO toDTO(Produto produto) {
-        return new ProdutoDTO(produto.getId(), produto.getNome(),produto.getDescricao(),produto.getPrecoUnitario());
+        return new ProdutoDTO(produto.getId(), produto.getNome(), produto.getDescricao(), produto.getPrecoUnitario());
     }
-
 }
