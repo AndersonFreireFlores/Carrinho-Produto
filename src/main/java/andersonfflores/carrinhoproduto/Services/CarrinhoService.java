@@ -3,7 +3,6 @@ package andersonfflores.carrinhoproduto.Services;
 import andersonfflores.carrinhoproduto.Models.Carrinho;
 import andersonfflores.carrinhoproduto.Models.DTOmappers.CarrinhoDTOMapper;
 import andersonfflores.carrinhoproduto.Models.DTOs.CarrinhoDTO;
-import andersonfflores.carrinhoproduto.Models.Item;
 import andersonfflores.carrinhoproduto.Repositories.CarrinhoRepository;
 import andersonfflores.carrinhoproduto.Repositories.ItemRepository;
 import org.springframework.stereotype.Service;
@@ -52,7 +51,6 @@ public class CarrinhoService {
         return carrinhoDTO;
     }
 
-
     public void update(UUID id) {
         Carrinho carrinho = carrinhoRepository.findById(id).orElseThrow(
                         () -> new RuntimeException("Carrinho not found"));
@@ -64,8 +62,6 @@ public class CarrinhoService {
     public void delete(UUID id) {
         carrinhoRepository.deleteById(id);
     }
-
-
     public BigDecimal calcularValorCarrinho(UUID id) {
         List<BigDecimal> list = carrinhoRepository.calcularValorCarrinho(id);
         return list.stream().reduce(BigDecimal.valueOf(0), BigDecimal::add);
